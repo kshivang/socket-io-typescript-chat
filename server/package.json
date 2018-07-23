@@ -1,9 +1,9 @@
 {
-  "name": "socket-io-typescript-example",
+  "name": "socket-io-typescript",
   "version": "0.0.1",
   "description": "A socket.io example written in TypeScript",
   "main": "index.js",
-  "author": "Luis Aviles",
+  "author": "Luis Aviles, Shivang",
   "license": "MIT",
   "scripts": {
     "start": "node dist/index.js"
