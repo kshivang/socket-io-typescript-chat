@@ -3,7 +3,6 @@ import * as express from 'express';
 import * as socketIo from 'socket.io';
 import * as robot from 'robotjs';
 
-import { UserMessage, MessageContent } from './model';
 
 export class ControllerServer {
     public static readonly PORT:number = 8080;
@@ -11,6 +10,19 @@ export class ControllerServer {
     private server: Server;
     private io: SocketIO.Server;
     private port: string | number;
+
+    private UP = 'UP';
+    private DOWN = 'DOWN';
+    private RIGHT = 'RIGHT';
+    private LEFT = 'LEFT';
+    private SELECT = 'SELECT';
+
+    private TEST = 0;
+    private DIRECTION = 1;
+    private TILT = 2;
+    private ROTATION = 3;
+    private TILT_ROT = 4;
+    private MESSAGE = 5;
 
     constructor() {
         this.createApp();
@@ -48,35 +60,31 @@ export class ControllerServer {
                 console.log('[server](message): %s', message);
                 
                 const content = m['content']
-                if (content && content.type && content.message) {
+                if (content && content.type) {
                     switch (content['type'])  {
-                        case '0': {
-                            this.mouseSine()
+                        case this.TEST: {
+                            this.mouseSine();
                             break;
                         }
-                        case '1': {
-                            switch (content["message"]) {
-                                case 'UP':  {
-                                    this.mouseNavigation(0, -1)
-                                    break;
-                                }
-                                case 'DOWN': {
-                                    this.mouseNavigation(0, 1)
-                                    break;
-                                }
-                                case 'RIGHT': {
-                                    this.mouseNavigation(1, 0)
-                                    break;
-                                }
-                                case 'LEFT': {
-                                    this.mouseNavigation(-1, 0)
-                                    break;
-                                }
-                                default: {
-                                    console.log("Not defined")
-                                }
-                            }
-                            break
+                        case this.DIRECTION: {
+                            this.mouseNavigate(content['direction'])
+                            break;
+                        }
+                        case this.TILT: {
+
+                            break;
+                        }
+                        case this.ROTATION: {
+
+                            break;
+                        }
+                        case this.TILT_ROT: {
+
+                            break;
+                        }
+                        case this.MESSAGE: {
+                            this.typeMessage(content['message'])
+                            break;
                         }
                         default: {
                             console.log("Not defined")
@@ -100,10 +108,38 @@ export class ControllerServer {
         const height = (screenSize.height / 2) - 10;
         const width = screenSize.width;
 
-        for (var x = 0, y = 0; x < width; x++)
-        {
+        for (var x = 0, y = 0; x < width; x++) {
             y = height * Math.sin((twoPI * x) / width) + height;
             robot.moveMouse(x, y);
+        }
+    }
+
+    private typeMessage(message: string): void {
+        robot.typeStringDelayed(message, 400);
+    }
+
+    private mouseNavigate(direction: string): void {
+        switch(direction) {
+            case this.UP: {
+                this.mouseNavigation(0, -1);
+                break;
+            }
+            case this.DOWN: {
+                this.mouseNavigation(0, 1);
+                break;
+            }
+            case this.RIGHT: {
+                this.mouseNavigation(1, 0);
+                break;
+            }
+            case this.LEFT: {
+                this.mouseNavigation(-1, 0);
+                break;
+            }
+            case this.SELECT: {
+                robot.mouseClick();
+                break
+            }
         }
     }
 
@@ -111,8 +147,11 @@ export class ControllerServer {
         robot.setMouseDelay(2);
         const screenSize = robot.getScreenSize();
         const current = robot.getMousePos();
-        console.log(current)
-        robot.moveMouse(current.x + (10 * right), current.y + (10 * down))
+        console.log(current);
+        if ((right > 0? current.x + (10 * right) < screenSize.width: current.x + (10 * right) > 0) 
+        || (down > 0? current.y + (10 * down) < screenSize.height: current.y + (10 * down) > 0)) {
+            robot.moveMouse(current.x + (10 * right), current.y + (10 * down));
+        }
     }
 
     public getApp(): express.Application {
