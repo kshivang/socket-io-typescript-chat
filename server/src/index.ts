@@ -1,4 +1,4 @@
-import { ChatServer } from './chat-server';
+import { ControllerServer } from './controller-server';
 
-let app = new ChatServer().getApp();
+let app = new ControllerServer().getApp();
 export { app };
